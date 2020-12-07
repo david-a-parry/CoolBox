@@ -121,14 +121,16 @@ class ReadBed(object):
         self.file_type = None
         self.file_handle = file_handle
         self.line_number = 0
+        self._first_line = None
         # guess file type
-        fields = self.get_no_comment_line()
-        fields = to_string(fields)
-        fields = fields.split()
+        line = self.get_no_comment_line()
+        line = to_string(line)
+        fields = line.split()
 
         self.guess_file_type(fields)
         if type(file_handle) is types.GeneratorType:
             self._file_name = "<from generator>"
+            self._first_line = line
         else:
             self._file_name = file_handle.name
             self.file_handle.seek(0)
@@ -197,8 +199,11 @@ class ReadBed(object):
         ------
         bedInterval object
         """
-        line = self.get_no_comment_line()
-
+        if self._first_line is not None:
+            line = self._first_line
+            self._first_line = None
+        else:
+            line = self.get_no_comment_line()
         bed = self.get_bed_interval(line)
         if self.prev_chrom == bed.chromosome:
             assert self.prev_start <= bed.start, \
@@ -218,20 +223,7 @@ class ReadBed(object):
         ------
         bedInterval object
         """
-        line = self.get_no_comment_line()
-
-        bed = self.get_bed_interval(line)
-        if self.prev_chrom == bed.chromosome:
-            assert self.prev_start <= bed.start, \
-                "BED file not sorted. Please use a sorted bed file.\n" \
-                "File: {}\n" \
-                "Previous line: {}\n Current line{} ".format(self._file_name, self.prev_line, line)
-
-        self.prev_chrom = bed.chromosome
-        self.prev_start = bed.start
-        self.prev_line = line
-
-        return bed
+        return self.next()
 
     def get_bed_interval(self, bed_line):
         r"""
