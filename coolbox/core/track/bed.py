@@ -351,16 +351,19 @@ class BED(Track, FetchBed):
 
             if not self.is_draw_labels:
                 pass
-            elif bed.start > start_region and bed.end < end_region:
+            elif bed.end > start_region and bed.end < end_region:
                 ax.text(bed.end + self.small_relative, ypos + (float(self.properties['interval_height']) / 2),
                         bed.name, horizontalalignment='left',
+                        verticalalignment='center', fontproperties=self.fp)
+            elif bed.start > start_region and bed.start < end_region:
+                ax.text(bed.start - self.small_relative, ypos + (float(self.properties['interval_height']) / 2),
+                        bed.name, horizontalalignment='right',
                         verticalalignment='center', fontproperties=self.fp)
 
         if self.counter == 0:
             log.warning("*Warning* No intervals were found for file {} "
                         "in Track '{}' for the interval plotted ({}:{}-{}).\n".
-                        format(self.properties['file'], self.properties['name'], chrom_region, start_region,
-                               end_region))
+                        format(self.properties['file'], self.properties['name'], chrom_region, start_region, end_region))
 
         ymax = 0
 
